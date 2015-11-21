@@ -14,7 +14,7 @@
         <module>Share</module>
     </modules>
     <properties>
-        <netty.version>5.0.0.Alpha1</netty.version>
+        <netty.version>4.0.33.final</netty.version>
         <junit.version>4.12</junit.version>
     </properties>
     <dependencies>

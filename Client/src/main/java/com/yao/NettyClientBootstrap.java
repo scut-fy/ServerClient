@@ -44,6 +44,10 @@ public class NettyClientBootstrap {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
+                // 这里定义空闲状态处理，构造函数中三个参数的意思是：
+                // int readerIdleTimeSeconds,int writerIdleTimeSeconds,int allIdleTimeSeconds)
+                // 分别表示多久没有读了，就触发一个空闲事件；多久没有写了，就触发一个空闲事件；
+                // 多久没有写或者读了，就触发一个事件。 如果设置为0  表示失效。
                 socketChannel.pipeline().addLast(new IdleStateHandler(20,10,0));
                 socketChannel.pipeline().addLast(new ObjectEncoder());
                 socketChannel.pipeline().addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));

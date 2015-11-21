@@ -10,12 +10,14 @@ import io.netty.util.ReferenceCountUtil;
  * Created by yaozb on 15-4-11.
  */
 public class NettyServerHandler extends SimpleChannelInboundHandler<BaseMsg> {
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         NettyChannelMap.remove((SocketChannel)ctx.channel());
     }
+
     @Override
-    protected void messageReceived(ChannelHandlerContext channelHandlerContext, BaseMsg baseMsg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, BaseMsg baseMsg) throws Exception {
 
         if(MsgType.LOGIN.equals(baseMsg.getType())){
             LoginMsg loginMsg=(LoginMsg)baseMsg;
@@ -57,4 +59,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<BaseMsg> {
         }
         ReferenceCountUtil.release(baseMsg);
     }
+
+
 }
