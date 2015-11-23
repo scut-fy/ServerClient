@@ -9,6 +9,10 @@ import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -114,6 +118,42 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOG.error("连接异常 ---------");
+        ctx.fireExceptionCaught(cause);
+    }
+
+    private final ScheduledExecutorService scheduler =
+            Executors.newScheduledThreadPool(1);
+
+    class AskReqRun implements Runnable{
+
+        private ChannelHandlerContext ctx;
+
+        AskReqRun(ChannelHandlerContext ctx){
+            this.ctx = ctx;
+        }
+        public void run() {
+
+            AskMsg askMsg = new AskMsg();
+            AskParams askParams = new AskParams();
+            askParams.setAuth("authToken");
+            askMsg.setParams(askParams);
+//            bootstrap.socketChannel.writeAndFlush(askMsg);
+            ctx.channel().writeAndFlush(askMsg);
+            LOG.debug("发送请求");
+        }
+    }
+
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        LOG.debug("调用  channelActive --------------");
+
+        /**
+         * 创建并执行一个在给定初始延迟后首次启用的定期操作，后续操作具有给定的周期；
+         * 也就是将在 initialDelay 后开始执行，
+         * 然后在 initialDelay+period 后执行，接着在 initialDelay + 2 * period 后执行，依此类推。
+         */
+
     }
 
     /**
