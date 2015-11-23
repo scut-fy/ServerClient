@@ -9,6 +9,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.timeout.IdleStateHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +19,9 @@ import java.util.concurrent.TimeUnit;
  * Created by yaozb on 15-4-11.
  */
 public class NettyServerBootstrap {
+
+    private static final Log LOG = LogFactory.getLog(NettyServerBootstrap.class);
+
     private int port;
     private SocketChannel socketChannel;
     public NettyServerBootstrap(int port) throws InterruptedException {
@@ -38,23 +44,27 @@ public class NettyServerBootstrap {
                 ChannelPipeline p = socketChannel.pipeline();
                 p.addLast(new ObjectEncoder());
                 p.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+                // 服务器端是否也需要添加空闲等待呢？
+                // 添加一个读空闲 监听
+                p.addLast("pong",new IdleStateHandler(15,0,0,TimeUnit.MINUTES));
+                p.addLast("heartbeat",new Heartbeart());
                 p.addLast(new NettyServerHandler());
             }
         });
         ChannelFuture f= bootstrap.bind(port).sync();
         if(f.isSuccess()){
-            System.out.println("server start---------------");
+            LOG.info("server start---------------");
         }
     }
     public static void main(String []args) throws InterruptedException {
         NettyServerBootstrap bootstrap=new NettyServerBootstrap(9999);
-        while (true){
-            SocketChannel channel=(SocketChannel)NettyChannelMap.get("001");
-            if(channel!=null){
-                AskMsg askMsg=new AskMsg();
-                channel.writeAndFlush(askMsg);
-            }
-            TimeUnit.SECONDS.sleep(10);
-        }
+//        while (true){
+//            SocketChannel channel=(SocketChannel)NettyChannelMap.get("001");
+//            if(channel!=null){
+//                AskMsg askMsg=new AskMsg();
+//                channel.writeAndFlush(askMsg);
+//            }
+//            TimeUnit.SECONDS.sleep(10);
+//        }
     }
 }
