@@ -55,6 +55,8 @@ public class NettyServerBootstrap {
         if(f.isSuccess()){
             LOG.info("server start---------------");
         }
+//        f.channel().closeFuture().sync();
+//        LOG.error("server close");
     }
     public static void main(String []args) throws InterruptedException {
         NettyServerBootstrap bootstrap=new NettyServerBootstrap(9999);

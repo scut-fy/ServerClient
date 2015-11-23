@@ -30,6 +30,9 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<BaseMsg> {
                 //登录成功,把channel存到服务端的map中
                 NettyChannelMap.add(loginMsg.getClientId(),(SocketChannel)channelHandlerContext.channel());
                 LOG.info("client" + loginMsg.getClientId() + " 登录成功");
+                // 告诉客户端你已经验证通过了
+                // 需要再创建一个消息类型，登录成功的消息类型。
+
             }
         }else{
             if(NettyChannelMap.get(baseMsg.getClientId())==null){
