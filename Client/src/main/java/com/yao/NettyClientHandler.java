@@ -24,9 +24,9 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
     // 心跳发送次数
     private int sendpingTimes = 0;
 
-    private Lock pingLock ;
+    private Lock pingLock;
 
-    public NettyClientHandler(){
+    public NettyClientHandler() {
         pingLock = new ReentrantLock();
     }
 
@@ -41,6 +41,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 
+
+
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent e = (IdleStateEvent) evt;
             switch (e.state()) {
@@ -53,7 +55,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
                     LOG.info("send ping to server----------");
                     //  将发送次数加1
                     pingPP();
-                    if(sendpingTimes>3){
+                    if (sendpingTimes > 3) {
                         // 如果发送心跳的次数已经大于三了，关闭连接，开启重连
                         LOG.error("心跳三次失败，准备重连");
                         ctx.channel().close();
@@ -61,7 +63,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
                     break;
                 case READER_IDLE:
                     LOG.error("长时间没有收到消息");
-                    if(sendpingTimes>3){
+                    if (sendpingTimes > 3) {
                         // 如果发送心跳的次数已经大于三了，关闭连接，开启重连
                         LOG.error("长时间没有收到心跳回复，连接失败，重连");
                         ctx.channel().close();
@@ -77,22 +79,16 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, BaseMsg baseMsg) throws Exception {
         {
             MsgType msgType = baseMsg.getType();
+//            LOG.debug("get msg the type is " + msgType);
             switch (msgType) {
-                case LOGIN: {
-                    //向服务器发起登录
-                    LoginMsg loginMsg = new LoginMsg();
-                    loginMsg.setPassword("yao");
-                    loginMsg.setUserName("robin");
-                    channelHandlerContext.writeAndFlush(loginMsg);
-                }
-                break;
+
                 case PONG: {
                     LOG.info("receive Pong from server----------");
                     // 将发送次数置零
                     pingTZ();
                 }
                 break;
-                case PING:{
+                case PING: {
                     LOG.error("收到来自server的 ping  ");
                 }
                 break;
@@ -118,19 +114,20 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOG.error("连接异常 ---------");
-        ctx.fireExceptionCaught(cause);
+//        ctx.fireExceptionCaught(cause);
     }
 
     private final ScheduledExecutorService scheduler =
             Executors.newScheduledThreadPool(1);
 
-    class AskReqRun implements Runnable{
+    class AskReqRun implements Runnable {
 
         private ChannelHandlerContext ctx;
 
-        AskReqRun(ChannelHandlerContext ctx){
+        AskReqRun(ChannelHandlerContext ctx) {
             this.ctx = ctx;
         }
+
         public void run() {
 
             AskMsg askMsg = new AskMsg();
@@ -153,25 +150,29 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<BaseMsg> {
          * 也就是将在 initialDelay 后开始执行，
          * 然后在 initialDelay+period 后执行，接着在 initialDelay + 2 * period 后执行，依此类推。
          */
+        final ScheduledFuture<?> beeperHandle =
+                // scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit)
+                scheduler.scheduleAtFixedRate(new AskReqRun(ctx), 6, 6, TimeUnit.SECONDS);
 
     }
 
     /**
      * 心跳次数+1
      */
-    private void pingPP(){
+    private void pingPP() {
         pingLock.lock();
-        try{
+        try {
             sendpingTimes++;
-        }finally {
+        } finally {
             pingLock.unlock();
         }
     }
-    private void pingTZ(){
+
+    private void pingTZ() {
         pingLock.lock();
-        try{
-            sendpingTimes=0;
-        }finally {
+        try {
+            sendpingTimes = 0;
+        } finally {
             pingLock.unlock();
         }
     }

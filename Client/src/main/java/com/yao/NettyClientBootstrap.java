@@ -66,6 +66,7 @@ public class NettyClientBootstrap {
                     socketChannel.pipeline().addLast(new IdleStateHandler(0, 5, 0));
                     socketChannel.pipeline().addLast(new ObjectEncoder());
                     socketChannel.pipeline().addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+                    socketChannel.pipeline().addLast("LoginHandler",new LoginHandler());
                     socketChannel.pipeline().addLast(new NettyClientHandler());
                 }
             });
@@ -104,11 +105,7 @@ public class NettyClientBootstrap {
 
         bootstrap.start();
 
-        LoginMsg loginMsg = new LoginMsg();
-        loginMsg.setPassword("yao");
-        loginMsg.setUserName("robin");
-        bootstrap.socketChannel.writeAndFlush(loginMsg);
-        LOG.info("发送认证");
+
 //        while (true) {
 //            TimeUnit.SECONDS.sleep(6);
 //            AskMsg askMsg = new AskMsg();

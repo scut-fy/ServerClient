@@ -32,11 +32,14 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<BaseMsg> {
                 LOG.info("client" + loginMsg.getClientId() + " 登录成功");
                 // 告诉客户端你已经验证通过了
                 // 需要再创建一个消息类型，登录成功的消息类型。
-
+                LoginRep response = new LoginRep();
+                channelHandlerContext.channel().writeAndFlush(response);
             }
         }else{
             if(NettyChannelMap.get(baseMsg.getClientId())==null){
                     //说明未登录，或者连接断了，服务器向客户端发起登录请求，让客户端重新登录
+                LoginMsg request=(LoginMsg)baseMsg;
+                LOG.error("用户"+ request.getUserName()+"验证失败，关闭连接");
                     LoginMsg loginMsg=new LoginMsg();
                     channelHandlerContext.channel().writeAndFlush(loginMsg);
             }
